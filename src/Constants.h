@@ -47,7 +47,7 @@ namespace Constants {
     const double L_F = 2.67;
 
     // We would ideally like to drive the car at this speed
-    const double TARGET_VELOCITY = 60;
+    const double TARGET_VELOCITY = 70;
 
     const size_t STATE_SIZE = 6;
     const size_t X_STATE_OFFSET = 0;

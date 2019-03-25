@@ -17,9 +17,9 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars) {
 
     // Costs for deviating from the reference state:
     for (int i = 0; i < N; i++) {
-        fg[0] += 3000*CppAD::pow(vars[CTE_OFFSET + i], 2);
-        fg[0] += 3000*CppAD::pow(vars[EPSI_OFFSET + i], 2);
-        fg[0] += CppAD::pow(vars[VEL_OFFSET + i] - TARGET_VELOCITY, 2);
+        fg[0] += 1000*CppAD::pow(vars[CTE_OFFSET + i], 2);
+        fg[0] += 1000*CppAD::pow(vars[EPSI_OFFSET + i], 2);
+        fg[0] += 5*CppAD::pow(vars[VEL_OFFSET + i] - TARGET_VELOCITY, 2);
     }
 
     // No steering and no throttle are preferred:
@@ -31,8 +31,8 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars) {
 
     // Costs for sudden changes in steering or throttle:
     for (int i = 0; i < N - 2; i++) {
-        fg[0] += 300*CppAD::pow(vars[STEER_CTRL_OFFSET + i + 1] - vars[STEER_CTRL_OFFSET + i], 2);
-        fg[0] += 20*CppAD::pow(vars[THROTTLE_CTRL_OFFSET + i + 1] - vars[THROTTLE_CTRL_OFFSET + i], 2);
+        fg[0] += 500*CppAD::pow(vars[STEER_CTRL_OFFSET + i + 1] - vars[STEER_CTRL_OFFSET + i], 2);
+        fg[0] += 5*CppAD::pow(vars[THROTTLE_CTRL_OFFSET + i + 1] - vars[THROTTLE_CTRL_OFFSET + i], 2);
     }
 
     //
