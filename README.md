@@ -47,7 +47,7 @@ Before being fed into the MPC, the waypoints are fitted to a 3rd degree polynomi
 
 ### Handling actuation latency
 
-A 100 ms actuation latency is simulated in this project. When the vehicle receives the telemetry data for each time step, it compensates for the latency by applying the MPC to state of the vehicle that is 100 ms in the future (using the model equations).  
+A 100 ms actuation latency is simulated in this project. Despite there being a concern about the latency causing an issue, it was possible to overcome that without making any special changes to the code. Instead, with the right tweaks, the cost function itself was able to accomodate that latency, even at a target speed of 70mph!!  
 
 ## Future improvements
 
