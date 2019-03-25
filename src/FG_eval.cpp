@@ -24,14 +24,14 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars) {
     }
 
     for (int i = 0; i < N - 1; i++) {
-        fg[0] += 5*CppAD::pow(vars[STEER_CTRL_OFFSET + i], 2);                        // Stabilize steering
-        fg[0] += 5*CppAD::pow(vars[THROTTLE_CTRL_OFFSET + i], 2);                     // Stabilize throttle
-        fg[0] += 700*CppAD::pow(vars[STEER_CTRL_OFFSET + i] * vars[VEL_OFFSET+i], 2); // Penalty for speed + steer
+        fg[0] += 5*CppAD::pow(vars[STEER_CTRL_OFFSET + i], 2);                        // Penalize steering instability
+        fg[0] += 5*CppAD::pow(vars[THROTTLE_CTRL_OFFSET + i], 2);                     // Penalize throttle instability
+        fg[0] += 700*CppAD::pow(vars[STEER_CTRL_OFFSET + i] * vars[VEL_OFFSET+i], 2); // Penalize speeding while steering
     }
 
     for (int i = 0; i < N - 2; i++) {
-        fg[0] += 300*CppAD::pow(vars[STEER_CTRL_OFFSET + i + 1] - vars[STEER_CTRL_OFFSET + i], 2); // 200
-        fg[0] += 20*CppAD::pow(vars[THROTTLE_CTRL_OFFSET + i + 1] - vars[THROTTLE_CTRL_OFFSET + i], 2); //10
+        fg[0] += 300*CppAD::pow(vars[STEER_CTRL_OFFSET + i + 1] - vars[STEER_CTRL_OFFSET + i], 2);
+        fg[0] += 20*CppAD::pow(vars[THROTTLE_CTRL_OFFSET + i + 1] - vars[THROTTLE_CTRL_OFFSET + i], 2);
     }
 
     //

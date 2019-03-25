@@ -9,7 +9,7 @@ namespace Constants {
     /**
      * MPC hyper parameters:
      */
-    const size_t N = 10;          // Prediction horizon
+    const size_t N = 8;          // Prediction horizon
     const double dt = 0.1;        // Sample size (seconds)
 
     // TODO: Set the number of model variables (includes both states and inputs).
@@ -47,7 +47,7 @@ namespace Constants {
     const double L_F = 2.67;
 
     // We would ideally like to drive the car at this speed
-    const double TARGET_VELOCITY = 70;
+    const double TARGET_VELOCITY = 60;
 
     const size_t STATE_SIZE = 6;
     const size_t X_STATE_OFFSET = 0;
