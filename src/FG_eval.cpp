@@ -15,20 +15,21 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars) {
     // Any additions to the cost should be added to `fg[0]`.
     fg[0] = 0;
 
-    // Reference State Cost
-    // Cost related to the reference state (open-ended):
+    // Costs for deviating from the reference state:
     for (int i = 0; i < N; i++) {
         fg[0] += 3000*CppAD::pow(vars[CTE_OFFSET + i], 2);
         fg[0] += 3000*CppAD::pow(vars[EPSI_OFFSET + i], 2);
         fg[0] += CppAD::pow(vars[VEL_OFFSET + i] - TARGET_VELOCITY, 2);
     }
 
+    // No steering and no throttle are preferred:
     for (int i = 0; i < N - 1; i++) {
         fg[0] += 5*CppAD::pow(vars[STEER_CTRL_OFFSET + i], 2);                        // Penalize steering instability
         fg[0] += 5*CppAD::pow(vars[THROTTLE_CTRL_OFFSET + i], 2);                     // Penalize throttle instability
         fg[0] += 700*CppAD::pow(vars[STEER_CTRL_OFFSET + i] * vars[VEL_OFFSET+i], 2); // Penalize speeding while steering
     }
 
+    // Costs for sudden changes in steering or throttle:
     for (int i = 0; i < N - 2; i++) {
         fg[0] += 300*CppAD::pow(vars[STEER_CTRL_OFFSET + i + 1] - vars[STEER_CTRL_OFFSET + i], 2);
         fg[0] += 20*CppAD::pow(vars[THROTTLE_CTRL_OFFSET + i + 1] - vars[THROTTLE_CTRL_OFFSET + i], 2);
@@ -53,24 +54,30 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars) {
 
     // The rest of the constraints
     for (int t = 1; t < N; t++) {
+        // State at time t+1:
         AD<double> x1 = vars[X_OFFSET + t];
-        AD<double> x0 = vars[X_OFFSET + t - 1];
         AD<double> y1 = vars[Y_OFFSET + t];
-        AD<double> y0 = vars[Y_OFFSET + t - 1];
         AD<double> psi1 = vars[PSI_OFFSET + t];
-        AD<double> psi0 = vars[PSI_OFFSET + t - 1];
         AD<double> v1 = vars[VEL_OFFSET + t];
-        AD<double> v0 = vars[VEL_OFFSET + t - 1];
         AD<double> cte1 = vars[CTE_OFFSET + t];
-        AD<double> cte0 = vars[CTE_OFFSET + t - 1];
         AD<double> epsi1 = vars[EPSI_OFFSET + t];
+
+        // State at time t:
+        AD<double> x0 = vars[X_OFFSET + t - 1];
+        AD<double> y0 = vars[Y_OFFSET + t - 1];
+        AD<double> psi0 = vars[PSI_OFFSET + t - 1];
+        AD<double> v0 = vars[VEL_OFFSET + t - 1];
+        AD<double> cte0 = vars[CTE_OFFSET + t - 1];
         AD<double> epsi0 = vars[EPSI_OFFSET + t - 1];
+
+        // Actuations at time t:
         AD<double> a = vars[THROTTLE_CTRL_OFFSET + t - 1];
         AD<double> delta = vars[STEER_CTRL_OFFSET + t - 1];
-        if (t > 1) {   // use previous actuations (to account for latency)
-            a = vars[THROTTLE_CTRL_OFFSET + t - 2];
-            delta = vars[STEER_CTRL_OFFSET + t - 2];
-        }
+//        if (t > 1) {   // use previous actuations (to account for latency)
+//            a = vars[THROTTLE_CTRL_OFFSET + t - 2];
+//            delta = vars[STEER_CTRL_OFFSET + t - 2];
+//        }
+
         AD<double> f0 = coeffs[0] + coeffs[1] * x0 + coeffs[2] * CppAD::pow(x0, 2) + coeffs[3] * CppAD::pow(x0, 3);
         AD<double> psides0 = CppAD::atan(coeffs[1] + 2 * coeffs[2] * x0 + 3 * coeffs[3] * CppAD::pow(x0, 2));
 

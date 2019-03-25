@@ -1,10 +1,64 @@
-# CarND-Controls-MPC
-Self-Driving Car Engineer Nanodegree Program
+# Model Predictive Controller (Autonomous Vehicles)
 
----
 
-## Dependencies
+## Overview
 
+This project aims to build a Model Predictive Controller that allows a simulated car to navigate around a racetrack, when provided with the following information at each time step:
+- Vehicle's current state (possibly obtained from a state estimator located elsewhere)
+- A planned trajectory for the vehicle to follow
+
+It is assumed that the calculation of this state, and the waypoints, is performed elsewhere (in this case, in the simulator), and the only code this project will concern itself with is for the MPC controller that sends the steering and throttle actuation signals back to the simulated car, provided the aforementioned information at every step.
+
+## Model Predictive Control overview
+
+This control is more powerful and adaptive than the PID control, because it is built on the actual model of the car, which could either be a kinematic model, or a more nuanced dynamic model. Whereas the PID controller treats the plant model as a black box, and adjusts the controls based purely on feedback it receives from the plant, the MPC controller can utilize a model of the plant enables it to perform nuanced predictions of the vehicle in the future, and to base its actuations on those predictions. However, whereas a PID controller can be utilized universally just by tweaking the gain settings, a MPC must be modeled around the specific plant, and cannot be applied to a plant that is governed by a different kinematic (or dynamic) model.
+
+## Implementation
+
+The telemetry data that is received by the MPC, from the vehicle's sensors (i.e, from the simulator), is as follows:
+
+```
+| <Global Xs for waypoints> ("ptsx") | <Global Ys for waypoints> ("ptsy") | Current-X("x") | Current-Y ("y") | Orientation ("psi") | Velocity ("speed") | Steering Angle ("steering_angle")| Throttle ("throttle") |
+```
+
+The controller does the following at each timestep that telemetry data is received:
+1- Receives telemetry data for timestep t
+2- Fits the waypoints to a 3rd order polynomial
+3- Uses its current state as the starting state
+4- It optimizes the controls needed for the next 'N' steps, given various contraints that represent the model
+5- Actuates the first control vector (discarding the remaining N-1 controls)
+6- Repeat steps 1-5
+
+### Model equations
+
+
+
+### Sample time (dt) selection
+
+Assuming a rise time (time it takes for a response to rise from 10% to 90% of the steady-state response of the plant) of approximately 1 second, the rule of thumb is to select a sample time that is about 5%-10% of that rise time, which (at 10%) is 0.1 seconds (100 ms).
+ 
+### Prediction horizon (N) selection
+
+The rule of thumb is for the prediction horizon to be 8-10 samples. I have chosen 8 here, in the interest of reducing computational load. (See future improvements item # 3 for alternate possibility).
+
+### Polynomial fitting
+
+Before being fed into the MPC, the waypoints are fitted to a 3rd degree polynomial. We use a degree-3 polynomial because it can accurately represent waypoints across most roads in the US.
+
+### Handling actuation latency
+
+A 100 ms actuation latency is simulated in this project. When the vehicle receives the telemetry data for each time step, it compensates for the latency by applying the MPC to state of the vehicle that is 100 ms in the future (using the model equations).  
+
+## Future improvements
+
+1. Implementing a control horizon of 2-4 samples (instead of the full length of the prediction horizon)
+2. More nuanced cost function
+3. A deep learning model that is trained to pick the optimal control for a given CTE & EPSI combination. This model would then linearly hop through the next N timesteps, determining at each step the optimal control to choose and the state of the car at the next step. This would achieve higher performance than the present model that does a gradient descent optimization at each time step. 
+4. A mechanism wherein teh controller can adapt its latency compensation to suit the needs of the environment, without needing to hardcode it (as has been done in this project)   
+
+## Appendix A - Installation & Dependencies
+
+### Dependencies
 * cmake >= 3.5
  * All OSes: [click here for installation instructions](https://cmake.org/install/)
 * make >= 4.1(mac, linux), 3.81(Windows)
@@ -30,15 +84,14 @@ Self-Driving Car Engineer Nanodegree Program
 * Simulator. You can download these from the [releases tab](https://github.com/udacity/self-driving-car-sim/releases).
 * Not a dependency but read the [DATA.md](./DATA.md) for a description of the data sent back from the simulator.
 
-
-## Basic Build Instructions
+### Basic Build Instructions
 
 1. Clone this repo.
 2. Make a build directory: `mkdir build && cd build`
 3. Compile: `cmake .. && make`
 4. Run it: `./mpc`.
 
-## Build with Docker-Compose
+### Build with Docker-Compose
 The docker-compose can run the project into a container
 and exposes the port required by the simulator to run.
 
@@ -47,7 +100,7 @@ and exposes the port required by the simulator to run.
 3. Run Container: `docker-compose up`
 4. On code changes repeat steps 2 and 3.
 
-## Tips
+### Tips
 
 1. The MPC is recommended to be tested on examples to see if implementation behaves as desired. One possible example
 is the vehicle offset of a straight line (reference). If the MPC implementation is correct, it tracks the reference line after some timesteps(not too many).
@@ -56,20 +109,11 @@ is the vehicle offset of a straight line (reference). If the MPC implementation 
 4.  Tips for setting up your environment are available [here](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/0949fca6-b379-42af-a919-ee50aa304e6a/lessons/f758c44c-5e40-4e01-93b5-1a82aa4e044f/concepts/23d376c7-0195-4276-bdf0-e02f1f3c665d)
 5. **VM Latency:** Some students have reported differences in behavior using VM's ostensibly a result of latency.  Please let us know if issues arise as a result of a VM environment.
 
-## Editor Settings
+### Code Style
 
-We have kept editor configuration files out of this repo to
-keep it as simple and environment agnostic as possible. However, we recommend
-using the following settings:
+[Google's C++ style guide](https://google.github.io/styleguide/cppguide.html).
 
-* indent using spaces
-* set tab width to 2 spaces (keeps the matrices in source code aligned)
-
-## Code Style
-
-Please (do your best to) stick to [Google's C++ style guide](https://google.github.io/styleguide/cppguide.html).
-
-## Project Instructions and Rubric
+### Project Instructions and Rubric
 
 Note: regardless of the changes you make, your project must be buildable using
 cmake and make!
@@ -77,40 +121,3 @@ cmake and make!
 More information is only accessible by people who are already enrolled in Term 2
 of CarND. If you are enrolled, see [the project page](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/f1820894-8322-4bb3-81aa-b26b3c6dcbaf/lessons/b1ff3be0-c904-438e-aad3-2b5379f0e0c3/concepts/1a2255a0-e23c-44cf-8d41-39b8a3c8264a)
 for instructions and the project rubric.
-
-## Hints!
-
-* You don't have to follow this directory structure, but if you do, your work
-  will span all of the .cpp files here. Keep an eye out for TODOs.
-
-## Call for IDE Profiles Pull Requests
-
-Help your fellow students!
-
-We decided to create Makefiles with cmake to keep this project as platform
-agnostic as possible. We omitted IDE profiles to ensure
-students don't feel pressured to use one IDE or another.
-
-However! I'd love to help people get up and running with their IDEs of choice.
-If you've created a profile for an IDE you think other students would
-appreciate, we'd love to have you add the requisite profile files and
-instructions to ide_profiles/. For example if you wanted to add a VS Code
-profile, you'd add:
-
-* /ide_profiles/vscode/.vscode
-* /ide_profiles/vscode/README.md
-
-The README should explain what the profile does, how to take advantage of it,
-and how to install it.
-
-Frankly, I've never been involved in a project with multiple IDE profiles
-before. I believe the best way to handle this would be to keep them out of the
-repo root to avoid clutter. Most profiles will include
-instructions to copy files to a new location to get picked up by the IDE, but
-that's just a guess.
-
-One last note here: regardless of the IDE used, every submitted project must
-still be compilable with cmake and make./
-
-## How to write a README
-A well written README file can enhance your project and portfolio and develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
