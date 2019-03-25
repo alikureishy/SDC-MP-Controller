@@ -1,5 +1,6 @@
 # Model Predictive Controller (Autonomous Vehicles)
 
+<img src="https://github.com/safdark/SDC-MP-Controller/blob/master/docs/images/SwerveRight.png" data-canonical-src="https://github.com/safdark/SDC-MP-Controller/blob/master/docs/images/SwerveRight.png" width="700" height="450" />
 
 ## Overview
 
@@ -31,7 +32,9 @@ The controller does the following at each timestep that telemetry data is receiv
 
 ### Model equations
 
+Here are the equations used by this MPC:
 
+<img src="https://github.com/safdark/SDC-MP-Controller/blob/master/docs/images/model_equations.png" data-canonical-src="https://github.com/safdark/SDC-MP-Controller/blob/master/docs/images/model_equations.png" width="300" height="200" />
 
 ### Sample time (dt) selection
 
